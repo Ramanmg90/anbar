@@ -56,3 +56,17 @@ for name, block in (("build.gradle.kts", KTS), ("build.gradle", GROOVY)):
         break
 else:
     raise SystemExit("android/build.gradle(.kts) not found")
+
+
+# --- خاموش کردن R8 در بیلد release ---
+# R8 کد کتابخانه‌های دوربین (CameraX / ML Kit) را خراب می‌کند و اسکنر با خطای
+# «Attempt to invoke virtual method ... on a null object reference» بالا نمی‌آید.
+# پرچم `flutter build --no-shrink` اثری ندارد؛ راه درست این property است.
+gp = f"{root}/android/gradle.properties"
+props = open(gp, encoding="utf-8").read() if os.path.exists(gp) else ""
+if "\nshrink=" not in "\n" + props:
+    with open(gp, "a", encoding="utf-8") as fh:
+        if props and not props.endswith("\n"):
+            fh.write("\n")
+        fh.write("shrink=false\n")
+print("gradle.properties: shrink=false")

@@ -39,7 +39,7 @@ jobs:
         working-directory: build_app
         run: |
           flutter pub get
-          flutter build apk --release --no-shrink
+          flutter build apk --release
 
       # امضای ثابت: باعث می‌شود نسخه‌های بعدی روی نسخه‌ی قبلی نصب شوند و داده‌ها پاک نشوند
       - name: Sign APK with fixed key
