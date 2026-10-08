@@ -18,6 +18,8 @@ class Fabric {
   final int? minMetersAlert;
   final String? supplier;
   final bool archived;
+  /// true = موجودی این کالا «تعداد تاقه» است (نه متر)؛ عدد موجودی در فیلد meters ذخیره می‌شود و قیمت، قیمت هر تاقه است.
+  final bool byTaqeh;
 
   const Fabric({
     required this.id,
@@ -37,7 +39,11 @@ class Fabric {
     this.minMetersAlert,
     this.supplier,
     this.archived = false,
+    this.byTaqeh = false,
   });
+
+  String get unit => byTaqeh ? 'تاقه' : 'متر';
+  String get unitShort => byTaqeh ? 'تاقه' : 'م';
 
   Fabric copyWith({String? status, double? meters, int? pricePerMeter, String? lastCountDate, bool? archived}) => Fabric(
         id: id,
@@ -57,6 +63,7 @@ class Fabric {
         minMetersAlert: minMetersAlert,
         supplier: supplier,
         archived: archived ?? this.archived,
+        byTaqeh: byTaqeh,
       );
 
   factory Fabric.fromJson(Map<String, dynamic> j) => Fabric(
@@ -77,6 +84,7 @@ class Fabric {
         minMetersAlert: (j['minMetersAlert'] as num?)?.round(),
         supplier: j['supplier'] as String?,
         archived: j['archived'] == true,
+        byTaqeh: j['byTaqeh'] == true,
       );
 
   Map<String, dynamic> toJson() => {
@@ -97,6 +105,7 @@ class Fabric {
         if (minMetersAlert != null) 'minMetersAlert': minMetersAlert,
         if (supplier != null) 'supplier': supplier,
         'archived': archived,
+        if (byTaqeh) 'byTaqeh': true,
       };
 }
 
@@ -118,6 +127,7 @@ class Tx {
   final String? reversedBy;
   final String? reverses;
   final String? reverseReason;
+  final bool byTaqeh;
 
   const Tx({
     required this.id,
@@ -137,7 +147,11 @@ class Tx {
     this.reversedBy,
     this.reverses,
     this.reverseReason,
+    this.byTaqeh = false,
   });
+
+  String get unit => byTaqeh ? 'تاقه' : 'متر';
+  String get unitShort => byTaqeh ? 'تاقه' : 'م';
 
   Tx withReversedBy(String rid) => Tx(
         id: id,
@@ -157,6 +171,7 @@ class Tx {
         reversedBy: rid,
         reverses: reverses,
         reverseReason: reverseReason,
+        byTaqeh: byTaqeh,
       );
 
   factory Tx.fromJson(Map<String, dynamic> j) => Tx(
@@ -177,6 +192,7 @@ class Tx {
         reversedBy: j['reversedBy'] as String?,
         reverses: j['reverses'] as String?,
         reverseReason: j['reverseReason'] as String?,
+        byTaqeh: j['byTaqeh'] == true,
       );
 
   Map<String, dynamic> toJson() => {
@@ -197,6 +213,7 @@ class Tx {
         if (reversedBy != null) 'reversedBy': reversedBy,
         if (reverses != null) 'reverses': reverses,
         if (reverseReason != null) 'reverseReason': reverseReason,
+        if (byTaqeh) 'byTaqeh': true,
       };
 }
 

@@ -1,4 +1,5 @@
-"""بعد از `flutter create`، مجوز دوربین و نام فارسی برنامه را به AndroidManifest اضافه می‌کند."""
+"""بعد از `flutter create`، مجوز دوربین، نام برنامه (RoboFabric) و آیکون را به پروژه‌ی اندروید اضافه می‌کند."""
+import os
 import re
 import sys
 
@@ -11,9 +12,19 @@ if "android.permission.CAMERA" not in s:
 for feat in ("android.hardware.camera", "android.hardware.camera.autofocus"):
     if feat not in s:
         s = s.replace("<application", f'<uses-feature android:name="{feat}" android:required="false"/>\n    <application', 1)
-s = re.sub(r'android:label="[^"]*"', 'android:label="انبار پارچه‌سرا"', s, count=1)
+s = re.sub(r'android:label="[^"]*"', 'android:label="RoboFabric"', s, count=1)
 open(path, "w", encoding="utf-8").write(s)
 print("manifest patched")
+
+# --- آیکون برنامه (از پوشه‌ی android_res کنار این اسکریپت) ---
+import shutil
+_src = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "android_res", "res")
+_dst = f"{root}/android/app/src/main/res"
+if os.path.isdir(_src):
+    shutil.copytree(_src, _dst, dirs_exist_ok=True)
+    print("launcher icon copied")
+else:
+    print("WARNING: android_res/res not found; default icon kept")
 
 
 # --- رفع ارور compileSdk پلاگین‌ها ---

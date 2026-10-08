@@ -211,7 +211,7 @@ class TxTile extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Text('${tx.metersChange > 0 ? '+' : ''}${faNum(tx.metersChange)} م',
+            Text('${tx.metersChange > 0 ? '+' : ''}${faNum(tx.metersChange)} ${tx.unitShort}',
                 textDirection: TextDirection.ltr, style: TextStyle(color: c, fontWeight: FontWeight.w800, fontSize: 13)),
             Text('مانده ${faNum(tx.metersAfter)}', style: const TextStyle(fontSize: 10, color: Color(0xFF78716C))),
             if (canReverse)

@@ -16,7 +16,6 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = context.watch<AppStore>();
     final items = store.active;
-    final totalMeters = items.fold<double>(0, (s, f) => s + f.meters);
     final totalValue = items.fold<double>(0, (s, f) => s + f.meters * f.pricePerMeter);
     final low = items.where((f) => f.status != 'موجود').toList()..sort((a, b) => a.meters.compareTo(b.meters));
     final recent = store.transactions.take(5).toList();
@@ -32,7 +31,7 @@ class HomeScreen extends StatelessWidget {
         Row(children: [
           Expanded(child: StatCard(label: 'نوع کالا', value: faNum(items.length), icon: Icons.inventory_2_outlined)),
           const SizedBox(width: 10),
-          Expanded(child: StatCard(label: 'مجموع متراژ', value: '${faNum(totalMeters)} متر', icon: Icons.straighten)),
+          Expanded(child: StatCard(label: 'مجموع موجودی', value: stockTotals(items), icon: Icons.straighten)),
         ]),
         const SizedBox(height: 10),
         Row(children: [
@@ -70,7 +69,7 @@ class HomeScreen extends StatelessWidget {
                 title: Text(f.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
                 subtitle: Text('کد ${toFa(f.code)}', style: const TextStyle(fontSize: 11)),
                 trailing: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Text('${faNum(f.meters)} متر', style: TextStyle(fontWeight: FontWeight.w800, color: statusColor(f.status))),
+                  Text('${faNum(f.meters)} ${f.unit}', style: TextStyle(fontWeight: FontWeight.w800, color: statusColor(f.status))),
                   StatusChip(f.status),
                 ]),
               ),

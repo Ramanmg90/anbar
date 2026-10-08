@@ -27,7 +27,7 @@ class AnbarApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'انبار پارچه‌سرا',
+      title: 'RoboFabric',
       debugShowCheckedModeBanner: false,
       locale: const Locale('fa', 'IR'),
       supportedLocales: const [Locale('fa', 'IR')],
@@ -113,7 +113,7 @@ class _ShellState extends State<Shell> {
         appBar: AppBar(
           titleSpacing: 16,
           title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('انبار پارچه‌سرا', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: kBrand)),
+            const Text('RoboFabric', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: kBrand)),
             Text(fullDate(), style: const TextStyle(fontSize: 11, color: Color(0xFF78716C), fontWeight: FontWeight.w400)),
           ]),
           actions: [

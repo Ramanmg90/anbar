@@ -22,10 +22,10 @@ Future<void> showReverseDialog(BuildContext context, Tx tx) async {
         title: const Text('لغو تراکنش', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
         content: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('${tx.fabricName}\n${tx.type} ${tx.metersChange > 0 ? '+' : ''}${faNum(tx.metersChange)} متر — ${tx.timestamp}، ${tx.dateStr}', style: const TextStyle(fontSize: 12, height: 1.8)),
+            Text('${tx.fabricName}\n${tx.type} ${tx.metersChange > 0 ? '+' : ''}${faNum(tx.metersChange)} ${tx.unit} — ${tx.timestamp}، ${tx.dateStr}', style: const TextStyle(fontSize: 12, height: 1.8)),
             const SizedBox(height: 10),
             Text(
-              'تراکنش اصلی پاک نمی‌شود؛ یک تراکنش جبرانی (${back > 0 ? '+' : ''}${faNum(back)} متر) ثبت می‌شود.${f == null ? '' : ' موجودی پس از لغو: ${faNum(f.meters + back)} متر.'}',
+              'تراکنش اصلی پاک نمی‌شود؛ یک تراکنش جبرانی (${back > 0 ? '+' : ''}${faNum(back)} ${tx.unit}) ثبت می‌شود.${f == null ? '' : ' موجودی پس از لغو: ${faNum(f.meters + back)} ${f.unit}.'}',
               style: const TextStyle(fontSize: 12, height: 1.8, color: Color(0xFF57534E)),
             ),
             const SizedBox(height: 12),
@@ -81,8 +81,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     final today = fullDate();
     final live = store.transactions.where((t) => t.dateStr == today && t.reversedBy == null && t.reverses == null);
-    final inToday = live.where((t) => t.type == 'ورود').fold<double>(0, (s, t) => s + t.metersChange);
-    final outToday = live.where((t) => t.type == 'خروج').fold<double>(0, (s, t) => s - t.metersChange);
+    final inToday = txTotals(live.where((t) => t.type == 'ورود'), out: false);
+    final outToday = txTotals(live.where((t) => t.type == 'خروج'), out: true);
 
     final items = <Object>[]; // String = سرتیتر تاریخ، Tx = تراکنش
     String? lastDate;
@@ -98,9 +98,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
       Padding(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
         child: Row(children: [
-          Expanded(child: StatCard(label: 'ورود امروز', value: '${faNum(inToday)} متر', icon: Icons.arrow_downward, color: Colors.green.shade700)),
+          Expanded(child: StatCard(label: 'ورود امروز', value: inToday, icon: Icons.arrow_downward, color: Colors.green.shade700)),
           const SizedBox(width: 10),
-          Expanded(child: StatCard(label: 'خروج امروز', value: '${faNum(outToday)} متر', icon: Icons.arrow_upward, color: Colors.red.shade700)),
+          Expanded(child: StatCard(label: 'خروج امروز', value: outToday, icon: Icons.arrow_upward, color: Colors.red.shade700)),
         ]),
       ),
       Padding(

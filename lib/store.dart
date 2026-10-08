@@ -166,6 +166,7 @@ class AppStore extends ChangeNotifier {
       note: note,
       user: userName,
       supplier: f.supplier,
+      byTaqeh: f.byTaqeh,
     );
   }
 
@@ -191,13 +192,13 @@ class AppStore extends ChangeNotifier {
     final f = byId(fabricId);
     if (f == null) return 'کالا پیدا نشد.';
     final newMeters = round2(f.meters + delta);
-    if (newMeters < 0) return 'موجودی کافی نیست؛ فقط ${faNum(f.meters)} متر در انبار است.';
-    final status = computeStatus(newMeters, f.minMetersAlert ?? 15);
+    if (newMeters < 0) return 'موجودی کافی نیست؛ فقط ${faNum(f.meters)} ${f.unit} در انبار است.';
+    final status = computeStatus(newMeters, f.minMetersAlert, f.byTaqeh);
     final updated = f.copyWith(meters: newMeters, status: status, pricePerMeter: price ?? f.pricePerMeter, lastCountDate: 'امروز');
     fabrics = [updated, ...fabrics.where((x) => x.id != fabricId)];
     transactions = [_tx(f, delta >= 0 ? 'ورود' : 'خروج', delta, newMeters, updated.pricePerMeter, note), ...transactions];
     if (status != 'موجود' && status != f.status) {
-      _notify(status == 'بحرانی' ? 'موجودی بحرانی' : 'هشدار کمبود موجودی', 'موجودی پارچه «${f.name}» به ${faNum(newMeters)} متر رسید ($status).', 'warning');
+      _notify(status == 'بحرانی' ? 'موجودی بحرانی' : 'هشدار کمبود موجودی', 'موجودی پارچه «${f.name}» به ${faNum(newMeters)} ${f.unit} رسید ($status).', 'warning');
     }
     await _commit();
     return null;
@@ -230,7 +231,7 @@ class AppStore extends ChangeNotifier {
       final j = jsonDecode(text) as Map<String, dynamic>;
       final st = j['state'];
       if (j['app'] != 'parche-sarai' || st is! Map<String, dynamic> || st['fabrics'] is! List || st['transactions'] is! List) {
-        return 'این فایل، پشتیبان پارچه‌سرا نیست.';
+        return 'این فایل، پشتیبان RoboFabric نیست.';
       }
       _apply(st);
       await _commit();

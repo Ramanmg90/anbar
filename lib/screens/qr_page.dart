@@ -69,7 +69,7 @@ class _QrPageState extends State<QrPage> {
                   const SizedBox(height: 2),
                   Text('کد: ${toFa(f.code)}', style: const TextStyle(fontSize: 13, color: Colors.black87)),
                   if (_showLocation) Text(f.location, style: const TextStyle(fontSize: 12, color: Colors.black54)),
-                  if (_showPrice) Text('${store.money(f.pricePerMeter)} / متر', style: const TextStyle(fontSize: 12, color: Colors.black87)),
+                  if (_showPrice) Text('${store.money(f.pricePerMeter)} / ${f.unit}', style: const TextStyle(fontSize: 12, color: Colors.black87)),
                 ]),
               ),
             ),

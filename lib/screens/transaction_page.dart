@@ -72,7 +72,7 @@ class _TransactionPageState extends State<TransactionPage> {
     final f = _fabricId == null ? null : store.byId(_fabricId!);
     if (f == null) return toast(context, 'ابتدا کالا را انتخاب کنید.', error: true);
     final m = parseNum(_meters.text) ?? 0;
-    if (m <= 0) return toast(context, 'متراژ را وارد کنید.', error: true);
+    if (m <= 0) return toast(context, f.byTaqeh ? 'تعداد تاقه را وارد کنید.' : 'متراژ را وارد کنید.', error: true);
     final price = parseNum(_price.text);
     if (price == null || price <= 0) return toast(context, 'قیمت را وارد کنید.', error: true);
     final isOut = _type == 'خروج';
@@ -124,7 +124,7 @@ class _TransactionPageState extends State<TransactionPage> {
                       Expanded(
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Text(f.name, style: const TextStyle(fontWeight: FontWeight.w700)),
-                          Text('کد ${toFa(f.code)} · موجودی ${faNum(f.meters)} متر', style: const TextStyle(fontSize: 11, color: Color(0xFF78716C))),
+                          Text('کد ${toFa(f.code)} · موجودی ${faNum(f.meters)} ${f.unit}', style: const TextStyle(fontSize: 11, color: Color(0xFF78716C))),
                         ]),
                       ),
                       const Icon(Icons.expand_more),
@@ -132,7 +132,7 @@ class _TransactionPageState extends State<TransactionPage> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text('متراژ', style: TextStyle(fontSize: 12, color: Color(0xFF78716C))),
+          Text(f?.byTaqeh == true ? 'تعداد تاقه' : 'متراژ', style: const TextStyle(fontSize: 12, color: Color(0xFF78716C))),
           const SizedBox(height: 6),
           Row(children: [
             IconButton.filledTonal(onPressed: () => _bump(-1), icon: const Icon(Icons.remove)),
@@ -150,17 +150,17 @@ class _TransactionPageState extends State<TransactionPage> {
             IconButton.filledTonal(onPressed: () => _bump(1), icon: const Icon(Icons.add)),
           ]),
           const SizedBox(height: 8),
-          Wrap(spacing: 8, children: [for (final p in [5, 10, 25, 50]) ActionChip(label: Text('+${toFa(p)}'), onPressed: () => _bump(p.toDouble()))]),
+          Wrap(spacing: 8, children: [for (final p in (f?.byTaqeh == true ? [1, 2, 5, 10] : [5, 10, 25, 50])) ActionChip(label: Text('+${toFa(p)}'), onPressed: () => _bump(p.toDouble()))]),
           if (f != null && m > 0)
             Padding(
               padding: const EdgeInsets.only(top: 12),
               child: Text(
-                tooMuch ? 'موجودی کافی نیست؛ فقط ${faNum(f.meters)} متر در انبار است.' : 'موجودی پس از ثبت: ${faNum(after!)} متر',
+                tooMuch ? 'موجودی کافی نیست؛ فقط ${faNum(f.meters)} ${f.unit} در انبار است.' : 'موجودی پس از ثبت: ${faNum(after!)} ${f.unit}',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: tooMuch ? Colors.red.shade700 : Colors.green.shade800),
               ),
             ),
           const SizedBox(height: 16),
-          TextField(controller: _price, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: InputDecoration(labelText: 'قیمت هر متر (${store.unit})')),
+          TextField(controller: _price, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: InputDecoration(labelText: 'قیمت هر ${f?.unit ?? 'متر'} (${store.unit})')),
           const SizedBox(height: 12),
           TextField(controller: _note, decoration: const InputDecoration(labelText: 'توضیح (اختیاری)', hintText: 'مثلاً: فروش به آقای رضایی')),
           const SizedBox(height: 20),
@@ -209,7 +209,7 @@ class _FabricPickerState extends State<_FabricPicker> {
                       leading: FabricAvatar(f, size: 40),
                       title: Text(f.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
                       subtitle: Text('کد ${toFa(f.code)}', style: const TextStyle(fontSize: 11)),
-                      trailing: Text('${faNum(f.meters)} م', style: TextStyle(fontWeight: FontWeight.w800, color: statusColor(f.status))),
+                      trailing: Text('${faNum(f.meters)} ${f.unitShort}', style: TextStyle(fontWeight: FontWeight.w800, color: statusColor(f.status))),
                       onTap: () => Navigator.of(context).pop(f),
                     );
                   },

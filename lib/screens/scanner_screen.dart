@@ -194,7 +194,7 @@ class _CameraState extends State<_Camera> with WidgetsBindingObserver {
   String _errorText(MobileScannerException e) {
     switch (e.errorCode) {
       case MobileScannerErrorCode.permissionDenied:
-        return 'برنامه اجازه‌ی استفاده از دوربین را ندارد.\nتنظیمات گوشی ← برنامه‌ها ← انبار پارچه‌سرا ← مجوزها ← دوربین را «مجاز» کنید و به برنامه برگردید.';
+        return 'برنامه اجازه‌ی استفاده از دوربین را ندارد.\nتنظیمات گوشی ← برنامه‌ها ← RoboFabric ← مجوزها ← دوربین را «مجاز» کنید و به برنامه برگردید.';
       case MobileScannerErrorCode.unsupported:
         return 'این گوشی از اسکن با دوربین پشتیبانی نمی‌کند. کد را دستی بنویسید.';
       default:

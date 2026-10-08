@@ -108,7 +108,7 @@ class _FabricTile extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Text('${faNum(f.meters)} م', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: statusColor(f.status))),
+              Text('${faNum(f.meters)} ${f.unitShort}', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: statusColor(f.status))),
               const SizedBox(height: 4),
               f.archived ? const Text('بایگانی', style: TextStyle(fontSize: 11, color: Color(0xFF78716C))) : StatusChip(f.status),
             ]),

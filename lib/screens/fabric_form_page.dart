@@ -23,6 +23,7 @@ class _FabricFormPageState extends State<FabricFormPage> {
   late final TextEditingController _code;
   late final TextEditingController _color;
   late final TextEditingController _meters;
+  late final TextEditingController _taqeh;
   late final TextEditingController _price;
   late final TextEditingController _width;
   late final TextEditingController _min;
@@ -31,6 +32,7 @@ class _FabricFormPageState extends State<FabricFormPage> {
   late final TextEditingController _desc;
   late String _category;
   bool _saving = false;
+  bool _byTaqeh = false; // حالت ورود موجودی اولیه: false = متراژ، true = تاقه
 
   bool get _editing => widget.initial != null;
 
@@ -43,9 +45,11 @@ class _FabricFormPageState extends State<FabricFormPage> {
     _code = TextEditingController(text: f?.code ?? '۱۴۰۵-${toFa(1000 + Random().nextInt(9000))}');
     _color = TextEditingController(text: f?.color ?? '');
     _meters = TextEditingController(text: '30');
+    _taqeh = TextEditingController(text: toFa(1));
     _price = TextEditingController(text: f == null ? '' : toFa(fmtNum(store.showPrice(f.pricePerMeter))));
     _width = TextEditingController(text: toFa(f?.widthCm ?? 150));
-    _min = TextEditingController(text: toFa(f?.minMetersAlert ?? 15));
+    _byTaqeh = f?.byTaqeh ?? false;
+    _min = TextEditingController(text: toFa(f?.minMetersAlert ?? defaultMinAlert(_byTaqeh)));
     _location = TextEditingController(text: f?.location ?? '');
     _supplier = TextEditingController(text: f?.supplier ?? '');
     _desc = TextEditingController(text: f?.description ?? '');
@@ -54,7 +58,7 @@ class _FabricFormPageState extends State<FabricFormPage> {
 
   @override
   void dispose() {
-    for (final c in [_name, _code, _color, _meters, _price, _width, _min, _location, _supplier, _desc]) {
+    for (final c in [_name, _code, _color, _meters, _taqeh, _price, _width, _min, _location, _supplier, _desc]) {
       c.dispose();
     }
     super.dispose();
@@ -66,6 +70,22 @@ class _FabricFormPageState extends State<FabricFormPage> {
     return (n == null || n <= 0) ? 'عدد معتبر وارد کنید' : null;
   }
 
+  /// موجودی اولیه: در حالت تاقه «تعداد تاقه»، در حالت متراژ «متر»
+  double get _initialQty => parseNum(_byTaqeh ? _taqeh.text : _meters.text) ?? 0;
+
+  String get _unitName => _byTaqeh ? 'تاقه' : 'متر';
+
+  void _setMode(bool taqeh) {
+    if (taqeh == _byTaqeh) return;
+    setState(() {
+      // اگر کاربر حد هشدار را دستی تغییر نداده، با حالت جدید عوض شود
+      if (parseNum(_min.text)?.round() == defaultMinAlert(_byTaqeh)) {
+        _min.text = toFa(defaultMinAlert(taqeh));
+      }
+      _byTaqeh = taqeh;
+    });
+  }
+
   Future<void> _save() async {
     if (!_key.currentState!.validate() || _saving) return;
     final store = context.read<AppStore>();
@@ -75,7 +95,7 @@ class _FabricFormPageState extends State<FabricFormPage> {
       return;
     }
     setState(() => _saving = true);
-    final minAlert = (parseNum(_min.text) ?? 15).round();
+    final minAlert = (parseNum(_min.text) ?? defaultMinAlert(_byTaqeh)).round();
     final price = store.toRials(parseNum(_price.text)!);
     final width = (parseNum(_width.text) ?? 150).round();
     final loc = _location.text.trim().isEmpty ? 'نامشخص' : _location.text.trim();
@@ -90,7 +110,7 @@ class _FabricFormPageState extends State<FabricFormPage> {
         code: _code.text.trim(),
         name: _name.text.trim(),
         category: _category,
-        status: computeStatus(f.meters, minAlert),
+        status: computeStatus(f.meters, minAlert, f.byTaqeh),
         meters: f.meters,
         pricePerMeter: price,
         color: col,
@@ -103,15 +123,16 @@ class _FabricFormPageState extends State<FabricFormPage> {
         minMetersAlert: minAlert,
         supplier: sup,
         archived: f.archived,
+        byTaqeh: f.byTaqeh,
       ));
     } else {
-      final m = parseNum(_meters.text) ?? 0;
+      final m = _initialQty;
       await store.addFabric(Fabric(
         id: 'fab-${DateTime.now().microsecondsSinceEpoch}',
         code: _code.text.trim(),
         name: _name.text.trim(),
         category: _category,
-        status: computeStatus(m, minAlert),
+        status: computeStatus(m, minAlert, _byTaqeh),
         meters: m,
         pricePerMeter: price,
         color: col,
@@ -120,6 +141,7 @@ class _FabricFormPageState extends State<FabricFormPage> {
         description: desc,
         minMetersAlert: minAlert,
         supplier: sup,
+        byTaqeh: _byTaqeh,
       ));
     }
     if (!mounted) return;
@@ -130,13 +152,14 @@ class _FabricFormPageState extends State<FabricFormPage> {
   @override
   Widget build(BuildContext context) {
     final store = context.watch<AppStore>();
-    Widget field(String label, TextEditingController c, {String? Function(String?)? validator, TextInputType? type, int lines = 1, String? hint}) => Padding(
+    Widget field(String label, TextEditingController c, {String? Function(String?)? validator, TextInputType? type, int lines = 1, String? hint, ValueChanged<String>? onChanged}) => Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: TextFormField(
             controller: c,
             validator: validator,
             keyboardType: type,
             maxLines: lines,
+            onChanged: onChanged,
             decoration: InputDecoration(labelText: label, hintText: hint),
           ),
         );
@@ -159,12 +182,29 @@ class _FabricFormPageState extends State<FabricFormPage> {
             ),
             const SizedBox(height: 14),
             field('رنگ', _color),
-            if (!_editing) field('موجودی اولیه (متر)', _meters, type: numKb, validator: (v) => parseNum(v ?? '') == null ? 'عدد معتبر وارد کنید' : null),
-            field('قیمت هر متر (${store.unit})', _price, type: numKb, validator: _numReq),
+            if (!_editing) ...[
+              const Padding(padding: EdgeInsets.only(bottom: 6), child: Text('موجودی اولیه به صورت', style: TextStyle(fontSize: 12, color: Color(0xFF78716C)))),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: SegmentedButton<bool>(
+                  segments: const [
+                    ButtonSegment(value: false, label: Text('متراژ'), icon: Icon(Icons.straighten)),
+                    ButtonSegment(value: true, label: Text('تاقه'), icon: Icon(Icons.layers_outlined)),
+                  ],
+                  selected: {_byTaqeh},
+                  onSelectionChanged: (s) => _setMode(s.first),
+                ),
+              ),
+              if (_byTaqeh)
+                field('تعداد تاقه', _taqeh, type: numKb, validator: _numReq)
+              else
+                field('موجودی اولیه (متر)', _meters, type: numKb, validator: (v) => parseNum(v ?? '') == null ? 'عدد معتبر وارد کنید' : null),
+            ],
+            field('قیمت هر $_unitName (${store.unit})', _price, type: numKb, validator: _numReq),
             Row(children: [
               Expanded(child: field('عرض (سانتی‌متر)', _width, type: numKb, validator: _numReq)),
               const SizedBox(width: 10),
-              Expanded(child: field('حد هشدار (متر)', _min, type: numKb, validator: _numReq)),
+              Expanded(child: field('حد هشدار ($_unitName)', _min, type: numKb, validator: _numReq)),
             ]),
             field('موقعیت در انبار', _location, hint: 'مثلاً قفسه ب-۳'),
             field('تأمین‌کننده', _supplier),
@@ -174,7 +214,7 @@ class _FabricFormPageState extends State<FabricFormPage> {
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(color: const Color(0xFFF5F5F4), borderRadius: BorderRadius.circular(14)),
-                child: Text('موجودی فعلی (${faNum(widget.initial!.meters)} متر) از اینجا تغییر نمی‌کند؛ برای اصلاح آن «ثبت ورود/خروج» را بزنید تا در تاریخچه بماند.', style: const TextStyle(fontSize: 12, height: 1.8, color: Color(0xFF57534E))),
+                child: Text('موجودی فعلی (${faNum(widget.initial!.meters)} ${widget.initial!.unit}) از اینجا تغییر نمی‌کند؛ برای اصلاح آن «ثبت ورود/خروج» را بزنید تا در تاریخچه بماند.', style: const TextStyle(fontSize: 12, height: 1.8, color: Color(0xFF57534E))),
               ),
             GlassButton(
               onPressed: _saving ? null : _save,

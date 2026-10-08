@@ -1,5 +1,7 @@
 import 'package:shamsi_date/shamsi_date.dart';
 
+import 'models.dart';
+
 const _faDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
 
 /// اعداد انگلیسی → فارسی
@@ -47,13 +49,45 @@ double? parseNum(String s) {
 String normalizeKey(String s) =>
     toEn(s).replaceAll(RegExp(r'[\s\u200c]'), '').replaceAll(RegExp(r'[–—_]'), '-').toLowerCase();
 
-String computeStatus(double meters, [int minAlert = 15]) {
-  if (meters <= 5) return 'بحرانی';
-  if (meters <= minAlert) return 'رو به اتمام';
+/// حد هشدار پیش‌فرض: ۱۵ متر یا ۳ تاقه
+int defaultMinAlert(bool byTaqeh) => byTaqeh ? 3 : 15;
+
+String computeStatus(double qty, [int? minAlert, bool byTaqeh = false]) {
+  final min = minAlert ?? defaultMinAlert(byTaqeh);
+  final critical = byTaqeh ? 1 : 5; // بحرانی: ≤۱ تاقه یا ≤۵ متر
+  if (qty <= critical) return 'بحرانی';
+  if (qty <= min) return 'رو به اتمام';
   return 'موجود';
 }
 
 double round2(double v) => (v * 100).round() / 100;
+
+String _joinTotals(double meters, double taqeh) {
+  final parts = <String>[];
+  if (meters != 0 || taqeh == 0) parts.add('${faNum(meters)} متر');
+  if (taqeh != 0) parts.add('${faNum(taqeh)} تاقه');
+  return parts.join(' و ');
+}
+
+/// جمع موجودی با واحدهای جدا، مثلاً «۱۲۰ متر و ۴ تاقه» (متر و تاقه با هم جمع نمی‌شوند)
+String stockTotals(Iterable<Fabric> items) => _joinTotals(
+      items.where((f) => !f.byTaqeh).fold<double>(0, (s, f) => s + f.meters),
+      items.where((f) => f.byTaqeh).fold<double>(0, (s, f) => s + f.meters),
+    );
+
+/// جمع ورود (out=false) یا خروج (out=true) تراکنش‌ها با واحدهای جدا
+String txTotals(Iterable<Tx> txs, {required bool out}) {
+  double m = 0, t = 0;
+  for (final x in txs) {
+    final v = out ? -x.metersChange : x.metersChange;
+    if (x.byTaqeh) {
+      t += v;
+    } else {
+      m += v;
+    }
+  }
+  return _joinTotals(round2(m), round2(t));
+}
 
 // ───────── تاریخ شمسی ─────────
 const _weekdays = {6: 'شنبه', 7: 'یکشنبه', 1: 'دوشنبه', 2: 'سه‌شنبه', 3: 'چهارشنبه', 4: 'پنجشنبه', 5: 'جمعه'};

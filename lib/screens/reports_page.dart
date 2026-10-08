@@ -30,9 +30,9 @@ class _SnapshotTab extends StatelessWidget {
   const _SnapshotTab();
 
   Future<void> _export(BuildContext context, List<Fabric> items) async {
-    const head = ['نام', 'کد', 'دسته', 'رنگ', 'عرض', 'متراژ', 'قیمت (ریال)', 'موقعیت', 'تأمین‌کننده', 'وضعیت', 'ارزش کل (ریال)'];
+    const head = ['نام', 'کد', 'دسته', 'رنگ', 'عرض', 'موجودی', 'واحد', 'قیمت هر واحد (ریال)', 'موقعیت', 'تأمین‌کننده', 'وضعیت', 'ارزش کل (ریال)'];
     final rows = [
-      for (final f in items) [f.name, f.code, f.category, f.color, f.widthCm, f.meters, f.pricePerMeter, f.location, f.supplier ?? '', f.status, (f.meters * f.pricePerMeter).round()],
+      for (final f in items) [f.name, f.code, f.category, f.color, f.widthCm, f.meters, f.unit, f.pricePerMeter, f.location, f.supplier ?? '', f.status, (f.meters * f.pricePerMeter).round()],
     ];
     final csv = '\uFEFF${[head, ...rows].map((r) => r.map(csvCell).join(',')).join('\r\n')}';
     try {
@@ -46,7 +46,6 @@ class _SnapshotTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = context.watch<AppStore>();
     final items = store.active;
-    final totalMeters = items.fold<double>(0, (s, f) => s + f.meters);
     final totalValue = items.fold<double>(0, (s, f) => s + f.meters * f.pricePerMeter);
     final byCat = <String, List<Fabric>>{};
     for (final f in items) {
@@ -62,7 +61,7 @@ class _SnapshotTab extends StatelessWidget {
         Row(children: [
           Expanded(child: StatCard(label: 'نوع کالا', value: faNum(items.length), icon: Icons.inventory_2_outlined)),
           const SizedBox(width: 10),
-          Expanded(child: StatCard(label: 'مجموع متراژ', value: '${faNum(totalMeters)} م', icon: Icons.straighten)),
+          Expanded(child: StatCard(label: 'مجموع موجودی', value: stockTotals(items), icon: Icons.straighten)),
         ]),
         const SizedBox(height: 10),
         StatCard(label: 'ارزش کل انبار', value: store.money(totalValue), icon: Icons.payments_outlined),
@@ -75,7 +74,7 @@ class _SnapshotTab extends StatelessWidget {
             child: Row(children: [
               Expanded(child: Text('${e.key} (${toFa(e.value.length)} نوع)', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13))),
               Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                Text('${faNum(e.value.fold<double>(0, (s, f) => s + f.meters))} متر', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                Text(stockTotals(e.value), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
                 Text(store.money(e.value.fold<double>(0, (s, f) => s + f.meters * f.pricePerMeter)), style: const TextStyle(fontSize: 11, color: Color(0xFF78716C))),
               ]),
             ]),
@@ -89,7 +88,7 @@ class _SnapshotTab extends StatelessWidget {
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE7E5E4))),
               child: Row(children: [
                 Expanded(child: Text(f.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13))),
-                Text('${faNum(f.meters)} م', style: TextStyle(fontWeight: FontWeight.w800, color: statusColor(f.status))),
+                Text('${faNum(f.meters)} ${f.unitShort}', style: TextStyle(fontWeight: FontWeight.w800, color: statusColor(f.status))),
               ]),
             ),
         ],
@@ -155,7 +154,7 @@ class _RangeTabState extends State<_RangeTab> {
   }
 
   Future<void> _export(RangeReportData rep, AppStore store) async {
-    final head = [kGroupLabels[_by]!, 'ورود (متر)', 'خروج (متر)', 'ارزش خروج (${store.unit})', 'تعداد تراکنش'];
+    final head = [kGroupLabels[_by]!, 'ورود (متر/تاقه)', 'خروج (متر/تاقه)', 'ارزش خروج (${store.unit})', 'تعداد تراکنش'];
     final rows = [for (final r in rep.rows) [r.key, r.inMeters, r.outMeters, store.showPrice(r.outValue.round()).round(), r.count]];
     final csv = '\uFEFF${[head, ...rows].map((r) => r.map(csvCell).join(',')).join('\r\n')}';
     try {

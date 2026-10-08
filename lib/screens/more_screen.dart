@@ -13,7 +13,7 @@ class MoreScreen extends StatelessWidget {
 
   Future<void> _backup(BuildContext context, AppStore store) async {
     try {
-      await shareTextFile('parche-sarai-backup-${isoDay(DateTime.now())}.json', store.backupJson(), subject: 'پشتیبان انبار پارچه‌سرا', mime: 'application/json');
+      await shareTextFile('robofabric-backup-${isoDay(DateTime.now())}.json', store.backupJson(), subject: 'پشتیبان RoboFabric', mime: 'application/json');
     } catch (_) {
       if (context.mounted) toast(context, 'ساخت فایل پشتیبان انجام نشد.', error: true);
     }

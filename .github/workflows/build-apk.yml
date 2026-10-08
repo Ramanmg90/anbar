@@ -45,19 +45,19 @@ jobs:
       - name: Sign APK with fixed key
         run: |
           APKSIGNER=$(ls $ANDROID_HOME/build-tools/*/apksigner | sort -V | tail -1)
-          cp build_app/build/app/outputs/flutter-apk/app-release.apk anbar-parche.apk
+          cp build_app/build/app/outputs/flutter-apk/app-release.apk robofabric.apk
           $APKSIGNER sign --ks keystore/anbar.jks --ks-key-alias anbar \
-            --ks-pass pass:anbar1234 --key-pass pass:anbar1234 anbar-parche.apk
-          $APKSIGNER verify anbar-parche.apk
+            --ks-pass pass:anbar1234 --key-pass pass:anbar1234 robofabric.apk
+          $APKSIGNER verify robofabric.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: anbar-parche-apk
-          path: anbar-parche.apk
+          name: robofabric-apk
+          path: robofabric.apk
 
       - name: Publish release (direct download link)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "v${{ github.run_number }}" anbar-parche.apk \
+          gh release create "v${{ github.run_number }}" robofabric.apk \
             --title "نسخه ${{ github.run_number }}" --notes "فایل APK آماده‌ی نصب"

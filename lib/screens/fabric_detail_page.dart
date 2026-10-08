@@ -62,7 +62,7 @@ class FabricDetailPage extends StatelessWidget {
             child: Column(children: [
               const Text('موجودی', style: TextStyle(color: Colors.white70, fontSize: 12)),
               const SizedBox(height: 4),
-              Text('${faNum(f.meters)} متر', style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w800)),
+              Text('${faNum(f.meters)} ${f.unit}', style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w800)),
               const SizedBox(height: 2),
               Text('ارزش: ${store.money(f.meters * f.pricePerMeter)}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
             ]),
@@ -79,7 +79,7 @@ class FabricDetailPage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE7E5E4))),
             child: Column(children: [
-              row(Icons.payments_outlined, 'قیمت هر متر', store.money(f.pricePerMeter)),
+              row(Icons.payments_outlined, 'قیمت هر ${f.unit}', store.money(f.pricePerMeter)),
               const Divider(height: 1),
               row(Icons.category_outlined, 'دسته', f.category),
               const Divider(height: 1),
@@ -90,7 +90,7 @@ class FabricDetailPage extends StatelessWidget {
               row(Icons.place_outlined, 'موقعیت در انبار', f.location),
               if (f.supplier != null) ...[const Divider(height: 1), row(Icons.local_shipping_outlined, 'تأمین‌کننده', f.supplier!)],
               const Divider(height: 1),
-              row(Icons.notifications_active_outlined, 'حد هشدار', '${toFa(f.minMetersAlert ?? 15)} متر'),
+              row(Icons.notifications_active_outlined, 'حد هشدار', '${toFa(f.minMetersAlert ?? defaultMinAlert(f.byTaqeh))} ${f.unit}'),
             ]),
           ),
           if (f.description != null && f.description!.isNotEmpty) ...[

@@ -178,7 +178,7 @@ ReverseOutcome reverseTx(Tx tx, Fabric? fabric, String reason, String user) {
   if (reason.trim().isEmpty) return const ReverseOutcome.fail('دلیل لغو را بنویسید.');
   final newMeters = round2(fabric.meters - tx.metersChange);
   if (newMeters < 0) {
-    return ReverseOutcome.fail('لغو ممکن نیست؛ موجودی فعلی (${faNum(fabric.meters)} متر) کمتر از مقداری است که باید برگردد.');
+    return ReverseOutcome.fail('لغو ممکن نیست؛ موجودی فعلی (${faNum(fabric.meters)} ${fabric.unit}) کمتر از مقداری است که باید برگردد.');
   }
   final now = DateTime.now();
   final rec = Tx(
@@ -197,9 +197,10 @@ ReverseOutcome reverseTx(Tx tx, Fabric? fabric, String reason, String user) {
     user: user,
     reverses: tx.id,
     reverseReason: reason.trim(),
+    byTaqeh: fabric.byTaqeh,
   );
   return ReverseOutcome.ok(
-    fabric.copyWith(meters: newMeters, status: computeStatus(newMeters, fabric.minMetersAlert ?? 15), lastCountDate: 'امروز'),
+    fabric.copyWith(meters: newMeters, status: computeStatus(newMeters, fabric.minMetersAlert, fabric.byTaqeh), lastCountDate: 'امروز'),
     rec,
   );
 }
